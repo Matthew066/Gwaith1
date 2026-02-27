@@ -37,13 +37,30 @@ class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
   String _profileName = 'M';
   Uint8List? _profileImageBytes;
-  final List<Map<String, dynamic>> _pins = List.generate(20, (index) => {
-    'id': index,
-    'url': 'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
-    'height': (index % 4 + 3) * 100.0,
-    'title': 'Gambar ${index + 1}',
-    'author': 'Author ${index % 6 + 1}',
-    'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
+
+  // kategori yang tersedia, dan yang dipilih sebagai "minat"
+  final List<String> _allCategories = ['Galaxy', 'Architecture', 'Nature', 'UI Design', 'Travel', 'Art'];
+  Set<String>? _selectedCategories;
+
+  @override
+  void initState() {
+    super.initState();
+    // ensure it's always non-null even after hot reload
+    _selectedCategories = _selectedCategories ?? {};
+  }
+
+  // setiap pin sekarang menyimpan kategori; ambil dari _allCategories
+  final List<Map<String, dynamic>> _pins = List.generate(20, (index) {
+    final category = ['Galaxy', 'Architecture', 'Nature', 'UI Design', 'Travel', 'Art'][index % 6];
+    return {
+      'id': index,
+      'url': 'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
+      'height': (index % 4 + 3) * 100.0,
+      'title': 'Gambar ${index + 1}',
+      'author': 'Author ${index % 6 + 1}',
+      'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
+      'category': category,
+    };
   });
   final List<Map<String, dynamic>> _boards = List.generate(3, (index) => {
     'name': 'Board Inspirasi ${index + 1}',
@@ -60,6 +77,11 @@ class _MainLayoutState extends State<MainLayout> {
     String? boardName,
   }) {
     setState(() {
+      // assign kategori acak jika tidak ada minat dipilih
+      final chosenSet = _selectedCategories ?? {};
+      final category = chosenSet.isNotEmpty
+          ? chosenSet.first
+          : (_allCategories..shuffle()).first;
       _pins.insert(0, {
         'id': _idCounter++,
         'url': imageUrl,
@@ -67,6 +89,7 @@ class _MainLayoutState extends State<MainLayout> {
         'title': title,
         'author': author,
         'description': description,
+        'category': category,
       });
       if (boardName != null) {
         final index = _boards.indexWhere((board) => board['name'] == boardName);
@@ -198,8 +221,22 @@ class _MainLayoutState extends State<MainLayout> {
         profileName: _profileName,
         profileImageBytes: _profileImageBytes,
         onProfileTap: _showEditProfileDialog,
+        selectedCategories: _selectedCategories ?? {},
       ),
-      const CategoriesPage(),
+      CategoriesPage(
+        categories: _allCategories,
+        selected: _selectedCategories ?? {},
+        onToggle: (cat) {
+          setState(() {
+            final set = _selectedCategories ??= {};
+            if (set.contains(cat)) {
+              set.remove(cat);
+            } else {
+              set.add(cat);
+            }
+          });
+        },
+      ),
       BoardsPage(boards: _boards),
       CreatePage(
         boardNames: _boards.map((board) => board['name'] as String).toList(),
@@ -294,12 +331,16 @@ class HomeFeedPage extends StatefulWidget {
   final Uint8List? profileImageBytes;
   final VoidCallback onProfileTap;
 
+  /// kategori yang sedang dipilih sebagai minat pengguna
+  final Set<String>? selectedCategories;
+
   const HomeFeedPage({
     super.key,
     required this.items,
     required this.profileName,
     required this.profileImageBytes,
     required this.onProfileTap,
+    required this.selectedCategories,
   });
 
   @override
@@ -309,10 +350,24 @@ class HomeFeedPage extends StatefulWidget {
 class _HomeFeedPageState extends State<HomeFeedPage> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  bool _forYou = false;
 
   List<Map<String, dynamic>> get _filteredItems {
-    if (_query.isEmpty) return widget.items;
-    return widget.items.where((it) => (it['title'] as String).toLowerCase().contains(_query.toLowerCase()) || (it['author'] as String).toLowerCase().contains(_query.toLowerCase())).toList();
+    // start with all items
+    var results = widget.items;
+
+    // apply "for you" category filter if needed
+    if (_forYou) {
+      final userCats = widget.selectedCategories ?? {};
+      if (userCats.isNotEmpty) {
+        results = results.where((it) => userCats.contains(it['category'] as String)).toList();
+        // no category selected => no results
+        return [];
+      }
+    }
+
+    if (_query.isEmpty) return results;
+    return results.where((it) => (it['title'] as String).toLowerCase().contains(_query.toLowerCase()) || (it['author'] as String).toLowerCase().contains(_query.toLowerCase())).toList();
   }
 
   @override
@@ -335,13 +390,41 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
-            children: const [
-              Text('Semua', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              SizedBox(width: 20),
-              Text('Untuk Anda', style: TextStyle(color: Colors.grey, fontSize: 16)),
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _forYou = false),
+                child: Text(
+                  'Semua',
+                  style: TextStyle(
+                    fontWeight: !_forYou ? FontWeight.bold : FontWeight.normal,
+                    color: !_forYou ? Colors.black : Colors.grey,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              GestureDetector(
+                onTap: () => setState(() => _forYou = true),
+                child: Text(
+                  'Untuk Anda',
+                  style: TextStyle(
+                    fontWeight: _forYou ? FontWeight.bold : FontWeight.normal,
+                    color: _forYou ? Colors.black : Colors.grey,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
+        if (_forYou && (widget.selectedCategories?.isEmpty ?? true))
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Pilih kategori di halaman Kategori & Minat terlebih dahulu',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
         const SizedBox(height: 16),
         Expanded(child: PinterestMasonryGrid(items: _filteredItems)),
       ],
@@ -351,34 +434,16 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
 
 // --- 2. CATEGORIES PAGE (Liked Content) ---
 class CategoriesPage extends StatelessWidget {
-  const CategoriesPage({super.key});
+  final List<String> categories;
+  final Set<String>? selected;
+  final void Function(String) onToggle;
 
-  @override
-  Widget build(BuildContext context) {
-    return const _CategorySelectorView();
-  }
-}
-
-class _CategorySelectorView extends StatefulWidget {
-  const _CategorySelectorView();
-
-  @override
-  State<_CategorySelectorView> createState() => _CategorySelectorViewState();
-}
-
-class _CategorySelectorViewState extends State<_CategorySelectorView> {
-  final List<String> _categories = ['Galaxy', 'Architecture', 'Nature', 'UI Design', 'Travel', 'Art'];
-  final Set<String> _selected = {};
-
-  void _toggleCategory(String category) {
-    setState(() {
-      if (_selected.contains(category)) {
-        _selected.remove(category);
-      } else {
-        _selected.add(category);
-      }
-    });
-  }
+  const CategoriesPage({
+    super.key,
+    required this.categories,
+    required this.selected,
+    required this.onToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -389,7 +454,7 @@ class _CategorySelectorViewState extends State<_CategorySelectorView> {
         children: [
           const Text('Kategori & Minat Anda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text('Terpilih: ${_selected.length}', style: const TextStyle(color: Colors.black54)),
+          Text('Terpilih: ${selected?.length ?? 0}', style: const TextStyle(color: Colors.black54)),
           const SizedBox(height: 16),
           Expanded(
             child: GridView.builder(
@@ -399,15 +464,15 @@ class _CategorySelectorViewState extends State<_CategorySelectorView> {
                 mainAxisSpacing: 10,
                 childAspectRatio: 2,
               ),
-              itemCount: _categories.length,
+              itemCount: categories.length,
               itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = _selected.contains(category);
+                final category = categories[index];
+                final isSelected = selected?.contains(category) ?? false;
                 return Material(
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () => _toggleCategory(category),
+                    onTap: () => onToggle(category),
                     child: Ink(
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
@@ -997,6 +1062,14 @@ class ImageDetailPage extends StatelessWidget {
                   Text(item['title'] ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   Text('By ${item['author'] ?? '-'}', style: const TextStyle(color: Colors.grey)),
+                  if (item.containsKey('category'))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        'Kategori: ${item['category']}',
+                        style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic, fontSize: 12),
+                      ),
+                    ),
                   const SizedBox(height: 12),
                   Text(item['description'] ?? ''),
                 ],
