@@ -42,32 +42,51 @@ class _MainLayoutState extends State<MainLayout> {
   final List<String> _allCategories = ['Galaxy', 'Architecture', 'Nature', 'UI Design', 'Travel', 'Art'];
   Set<String>? _selectedCategories;
 
+  // data model sekarang menyimpan daftar pin per papan
+  late List<Map<String, dynamic>> _pins;
+  late List<Map<String, dynamic>> _boards;
+  int _idCounter = 1000;
+
   @override
   void initState() {
     super.initState();
     // ensure it's always non-null even after hot reload
-    _selectedCategories = _selectedCategories ?? {};
-  }
+    _selectedCategories = {};
 
-  // setiap pin sekarang menyimpan kategori; ambil dari _allCategories
-  final List<Map<String, dynamic>> _pins = List.generate(20, (index) {
-    final category = ['Galaxy', 'Architecture', 'Nature', 'UI Design', 'Travel', 'Art'][index % 6];
-    return {
-      'id': index,
-      'url': 'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
-      'height': (index % 4 + 3) * 100.0,
-      'title': 'Gambar ${index + 1}',
-      'author': 'Author ${index % 6 + 1}',
-      'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
-      'category': category,
-    };
-  });
-  final List<Map<String, dynamic>> _boards = List.generate(3, (index) => {
-    'name': 'Board Inspirasi ${index + 1}',
-    'pinCount': 12,
-    'isPrivate': true,
-  });
-  int _idCounter = 1000;
+    // buat beberapa papan awal
+    _boards = List.generate(3, (index) => {
+      'name': 'Board Inspirasi ${index + 1}',
+      'pinCount': 0,
+      'isPrivate': true,
+      'pins': <Map<String, dynamic>>[],
+    });
+
+    // buat beberapa pin awal dan tetapkan ke papan secara siklis
+    _pins = List.generate(20, (index) {
+      final category = ['Galaxy', 'Architecture', 'Nature', 'UI Design', 'Travel', 'Art'][index % 6];
+      final boardName = _boards[index % _boards.length]['name'] as String;
+      return {
+        'id': index,
+        'url': 'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
+        'height': (index % 4 + 3) * 100.0,
+        'title': 'Gambar ${index + 1}',
+        'author': 'Author ${index % 6 + 1}',
+        'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
+        'category': category,
+        'boardName': boardName,
+      };
+    });
+
+    // tambahkan setiap pin ke daftar pins pada papan yang sesuai
+    for (var pin in _pins) {
+      final name = pin['boardName'] as String?;
+      if (name != null) {
+        final board = _boards.firstWhere((b) => b['name'] == name);
+        (board['pins'] as List).add(pin);
+        board['pinCount'] = (board['pinCount'] as int) + 1;
+      }
+    }
+  }
 
   void _addPin({
     required String title,
@@ -82,7 +101,7 @@ class _MainLayoutState extends State<MainLayout> {
       final category = chosenSet.isNotEmpty
           ? chosenSet.first
           : (_allCategories..shuffle()).first;
-      _pins.insert(0, {
+      final pin = {
         'id': _idCounter++,
         'url': imageUrl,
         'height': 260.0,
@@ -90,11 +109,15 @@ class _MainLayoutState extends State<MainLayout> {
         'author': author,
         'description': description,
         'category': category,
-      });
-      if (boardName != null) {
-        final index = _boards.indexWhere((board) => board['name'] == boardName);
-        if (index != -1) {
-          _boards[index]['pinCount'] = (_boards[index]['pinCount'] as int) + 1;
+        'boardName': boardName,
+      };
+      _pins.insert(0, pin);
+      if (boardName != null && boardName.isNotEmpty) {
+        final boardIndex = _boards.indexWhere((board) => board['name'] == boardName);
+        if (boardIndex != -1) {
+          final board = _boards[boardIndex];
+          board['pinCount'] = (board['pinCount'] as int) + 1;
+          (board['pins'] as List).insert(0, pin);
         }
       }
     });
@@ -109,6 +132,7 @@ class _MainLayoutState extends State<MainLayout> {
         'name': name,
         'pinCount': 0,
         'isPrivate': isPrivate,
+        'pins': <Map<String, dynamic>>[],
       });
     });
   }
@@ -237,7 +261,10 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
       ),
-      BoardsPage(boards: _boards),
+      BoardsPage(
+        boards: _boards,
+        onAddBoard: _addBoard,
+      ),
       CreatePage(
         boardNames: _boards.map((board) => board['name'] as String).toList(),
         onCreatePin: _addPin,
@@ -517,7 +544,13 @@ class CategoriesPage extends StatelessWidget {
 // --- 3. BOARDS PAGE ---
 class BoardsPage extends StatelessWidget {
   final List<Map<String, dynamic>> boards;
-  const BoardsPage({super.key, required this.boards});
+  final void Function({required String name, required bool isPrivate}) onAddBoard;
+
+  const BoardsPage({
+    super.key,
+    required this.boards,
+    required this.onAddBoard,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -529,46 +562,180 @@ class BoardsPage extends StatelessWidget {
           const Text('Papan Anda (Boards)', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
           Expanded(
-            child: ListView.builder(
-              itemCount: boards.length,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: boards.length + 1, // +1 for the "create" tile
               itemBuilder: (context, index) {
-                final board = boards[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(child: Container(height: 100, color: Colors.grey[300])),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Container(height: 49, color: Colors.grey[200]),
-                                const SizedBox(height: 2),
-                                Container(height: 49, color: Colors.grey[100]),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      ListTile(
-                        title: Text(board['name'] as String),
-                        subtitle: Text('${board['pinCount']} Pin'),
-                        trailing: Icon(
-                          (board['isPrivate'] as bool) ? Icons.lock_outline : Icons.public,
-                          size: 16,
+                if (index == 0) {
+                  return GestureDetector(
+                    onTap: () => _showCreateBoardDialog(context),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      color: Colors.grey[200],
+                      child: Center(
+                        child: Text(
+                          'Buat',
+                          style: TextStyle(fontSize: 18, color: Colors.grey[700]),
                         ),
                       ),
-                    ],
-                  ),
-                );
+                    ),
+                  );
+                }
+                final board = boards[index - 1];
+                final pins = (board['pins'] as List).cast<Map<String, dynamic>>();
+                return _buildBoardCard(board, pins, context);
               },
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBoardCard(Map<String, dynamic> board, List<Map<String, dynamic>> pins, BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => BoardDetailPage(
+                  name: board['name'] as String,
+                  pins: pins,
+                )));
+      },
+      child: Card(
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildPreviewImage(pins.isNotEmpty ? pins[0]['url'] as String : null),
+                  ),
+                  const SizedBox(width: 2),
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: _buildPreviewImage(pins.length > 1 ? pins[1]['url'] as String : null),
+                        ),
+                        const SizedBox(height: 2),
+                        Expanded(
+                          child: _buildPreviewImage(pins.length > 2 ? pins[2]['url'] as String : null),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              title: Text(board['name'] as String),
+              subtitle: Text('${board['pinCount']} Pin'),
+              trailing: Icon(
+                (board['isPrivate'] as bool) ? Icons.lock_outline : Icons.public,
+                size: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewImage(String? url) {
+    if (url == null || url.isEmpty) {
+      return Container(color: Colors.grey[300]);
+    }
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      errorBuilder: (context, error, stack) => Container(color: Colors.grey[300]),
+    );
+  }
+
+  Future<void> _showCreateBoardDialog(BuildContext context) async {
+    final nameController = TextEditingController();
+    bool isPrivate = true;
+
+    final created = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: const Text('Buat Papan'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Nama Papan'),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Text('Privat'),
+                      Switch(
+                        value: isPrivate,
+                        onChanged: (v) => setDialogState(() => isPrivate = v),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Batal'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    if (name.isNotEmpty) {
+                      onAddBoard(name: name, isPrivate: isPrivate);
+                    }
+                    Navigator.pop(ctx, true);
+                  },
+                  child: const Text('Simpan'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (created == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Papan dibuat')));
+    }
+  }
+}
+
+// detail view when a board is tapped
+class BoardDetailPage extends StatelessWidget {
+  final String name;
+  final List<Map<String, dynamic>> pins;
+
+  const BoardDetailPage({super.key, required this.name, required this.pins});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(name),
+        backgroundColor: Colors.red,
+      ),
+      body: PinterestMasonryGrid(items: pins),
     );
   }
 }
