@@ -9,17 +9,23 @@ class HomeFeedPage extends StatefulWidget {
   const HomeFeedPage({
     super.key,
     required this.items,
+    required this.forYouItems,
     required this.profileName,
     required this.profileImageBytes,
     required this.onProfileTap,
     required this.selectedCategories,
+    required this.likedPinIds,
+    required this.onToggleLike,
   });
 
   final List<Map<String, dynamic>> items;
+  final List<Map<String, dynamic>> forYouItems;
   final String profileName;
   final Uint8List? profileImageBytes;
   final VoidCallback onProfileTap;
   final Set<String> selectedCategories;
+  final Set<int> likedPinIds;
+  final ValueChanged<int> onToggleLike;
 
   @override
   State<HomeFeedPage> createState() => _HomeFeedPageState();
@@ -31,16 +37,7 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
   bool _forYou = false;
 
   List<Map<String, dynamic>> get _filteredItems {
-    var results = widget.items;
-
-    if (_forYou) {
-      if (widget.selectedCategories.isEmpty) {
-        return [];
-      }
-      results = results
-          .where((item) => widget.selectedCategories.contains(item['category'] as String))
-          .toList();
-    }
+    final results = _forYou ? widget.forYouItems : widget.items;
 
     if (_query.isEmpty) {
       return results;
@@ -101,17 +98,30 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
             ],
           ),
         ),
-        if (_forYou && widget.selectedCategories.isEmpty)
+        if (_forYou && widget.likedPinIds.isEmpty && widget.selectedCategories.isEmpty)
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
-              'Pilih kategori di halaman Kategori terlebih dahulu',
+              'Like pin atau pilih kategori terlebih dahulu',
               style: TextStyle(color: Colors.redAccent),
             ),
           ),
         const SizedBox(height: 16),
         Expanded(
-          child: PinterestMasonryGrid(items: _filteredItems),
+          child: _filteredItems.isEmpty
+              ? Center(
+                  child: Text(
+                    _forYou
+                        ? 'Belum ada rekomendasi. Coba pilih kategori atau like beberapa pin.'
+                        : 'Belum ada pin untuk ditampilkan.',
+                    style: const TextStyle(color: Colors.black54),
+                  ),
+                )
+              : PinterestMasonryGrid(
+                  items: _filteredItems,
+                  likedPinIds: widget.likedPinIds,
+                  onToggleLike: widget.onToggleLike,
+                ),
         ),
       ],
     );

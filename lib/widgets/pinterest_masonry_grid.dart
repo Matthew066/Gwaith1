@@ -6,9 +6,13 @@ class PinterestMasonryGrid extends StatelessWidget {
   const PinterestMasonryGrid({
     super.key,
     required this.items,
+    this.likedPinIds = const <int>{},
+    this.onToggleLike,
   });
 
   final List<Map<String, dynamic>> items;
+  final Set<int> likedPinIds;
+  final ValueChanged<int>? onToggleLike;
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +46,20 @@ class PinterestMasonryGrid extends StatelessWidget {
   }
 
   Widget _buildGridItem(BuildContext context, Map<String, dynamic> item) {
+    final pinId = item['id'] as int?;
+    final isLiked = pinId != null && likedPinIds.contains(pinId);
+
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => ImageDetailPage(item: item),
+            builder: (_) => ImageDetailPage(
+              item: item,
+              isLiked: isLiked,
+              onToggleLike: pinId != null && onToggleLike != null
+                  ? () => onToggleLike!(pinId)
+                  : null,
+            ),
           ),
         );
       },
@@ -62,6 +75,22 @@ class PinterestMasonryGrid extends StatelessWidget {
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
+              if (pinId != null && onToggleLike != null)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Material(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      onPressed: () => onToggleLike!(pinId),
+                      icon: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: isLiked ? Colors.red : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 left: 8,
                 right: 8,

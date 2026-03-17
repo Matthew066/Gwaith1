@@ -4,14 +4,30 @@ class ImageDetailPage extends StatelessWidget {
   const ImageDetailPage({
     super.key,
     required this.item,
+    this.isLiked = false,
+    this.onToggleLike,
   });
 
   final Map<String, dynamic> item;
+  final bool isLiked;
+  final VoidCallback? onToggleLike;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(item['title'] ?? 'Detail')),
+      appBar: AppBar(
+        title: Text(item['title'] ?? 'Detail'),
+        actions: [
+          if (onToggleLike != null)
+            IconButton(
+              onPressed: onToggleLike,
+              icon: Icon(
+                isLiked ? Icons.favorite : Icons.favorite_border,
+                color: isLiked ? Colors.red : null,
+              ),
+            ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

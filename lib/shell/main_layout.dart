@@ -22,6 +22,7 @@ class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
   String _profileName = 'M';
   Uint8List? _profileImageBytes;
+  final Set<int> _likedPinIds = <int>{};
 
   final List<String> _allCategories = [
     'Galaxy',
@@ -252,13 +253,32 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final forYouItems = _pins.where((pin) {
+      final pinId = pin['id'] as int?;
+      final category = pin['category'] as String?;
+      final matchesLike = pinId != null && _likedPinIds.contains(pinId);
+      final matchesCategory = category != null && _selectedCategories.contains(category);
+      return matchesLike || matchesCategory;
+    }).toList();
+
     final pages = [
       HomeFeedPage(
         items: _pins,
+        forYouItems: forYouItems,
         profileName: _profileName,
         profileImageBytes: _profileImageBytes,
         onProfileTap: _showEditProfileDialog,
         selectedCategories: _selectedCategories,
+        likedPinIds: _likedPinIds,
+        onToggleLike: (pinId) {
+          setState(() {
+            if (_likedPinIds.contains(pinId)) {
+              _likedPinIds.remove(pinId);
+            } else {
+              _likedPinIds.add(pinId);
+            }
+          });
+        },
       ),
       CategoriesPage(
         categories: _allCategories,
