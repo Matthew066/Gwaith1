@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'board_detail_page.dart';
-
+                                       
 class BoardsPage extends StatelessWidget {
   const BoardsPage({
     super.key,

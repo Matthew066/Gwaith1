@@ -95,7 +95,7 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
                   ),
                 ),
               ),
-            ],
+            ],  
           ),
         ),
         if (_forYou && widget.likedPinIds.isEmpty && widget.selectedCategories.isEmpty)
