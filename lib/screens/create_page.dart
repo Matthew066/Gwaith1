@@ -16,15 +16,12 @@ class CreatePage extends StatelessWidget {
     required String description,
     required String imageUrl,
     String? boardName,
-  }) onCreatePin;
-  final void Function({
-    required String name,
-    required bool isPrivate,
-  }) onCreateBoard;
-  final void Function({
-    required String title,
-    required String theme,
-  }) onCreateCollage;
+  })
+  onCreatePin;
+  final void Function({required String name, required bool isPrivate})
+  onCreateBoard;
+  final void Function({required String title, required String theme})
+  onCreateCollage;
 
   @override
   Widget build(BuildContext context) {
@@ -77,230 +74,313 @@ class CreatePage extends StatelessWidget {
         label: Text(label),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
         ),
       ),
     );
   }
 
   Future<void> _showCreatePinDialog(BuildContext context) async {
-    final titleController = TextEditingController();
-    final authorController = TextEditingController(text: 'Anda');
-    final descriptionController = TextEditingController();
-    final imageUrlController = TextEditingController();
-    var selectedBoard = boardNames.isNotEmpty ? boardNames.first : '';
-
     final created = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: const Text('Buat Pin'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      decoration: const InputDecoration(labelText: 'Judul Pin'),
-                    ),
-                    TextField(
-                      controller: authorController,
-                      decoration: const InputDecoration(labelText: 'Nama Pembuat'),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(labelText: 'Deskripsi'),
-                      maxLines: 2,
-                    ),
-                    TextField(
-                      controller: imageUrlController,
-                      decoration: const InputDecoration(
-                        labelText: 'URL Gambar (opsional)',
-                        hintText: 'https://...',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedBoard,
-                      items: [
-                        const DropdownMenuItem<String>(
-                          value: '',
-                          child: Text('Tanpa papan'),
-                        ),
-                        ...boardNames.map(
-                          (name) => DropdownMenuItem<String>(
-                            value: name,
-                            child: Text(name),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setDialogState(() {
-                          selectedBoard = value ?? '';
-                        });
-                      },
-                      decoration: const InputDecoration(labelText: 'Simpan ke papan'),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('Batal'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final title = titleController.text.trim();
-                    if (title.isEmpty) {
-                      return;
-                    }
-
-                    final generatedImage =
-                        'https://picsum.photos/seed/pin_${DateTime.now().millisecondsSinceEpoch}/500/700';
-
-                    onCreatePin(
-                      title: title,
-                      author: authorController.text.trim().isEmpty
-                          ? 'Anda'
-                          : authorController.text.trim(),
-                      description: descriptionController.text.trim(),
-                      imageUrl: imageUrlController.text.trim().isEmpty
-                          ? generatedImage
-                          : imageUrlController.text.trim(),
-                      boardName: selectedBoard.isEmpty ? null : selectedBoard,
-                    );
-                    Navigator.pop(dialogContext, true);
-                  },
-                  child: const Text('Simpan Pin'),
-                ),
-              ],
-            );
-          },
+        return _CreatePinDialog(
+          boardNames: boardNames,
+          onCreatePin: onCreatePin,
         );
       },
     );
 
     if (created == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pin berhasil dibuat')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Pin berhasil dibuat')));
     }
   }
 
   Future<void> _showCreateBoardDialog(BuildContext context) async {
-    final nameController = TextEditingController();
-    var isPrivate = true;
-
     final created = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: const Text('Buat Papan'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Nama papan'),
-                  ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    value: isPrivate,
-                    title: const Text('Papan privat'),
-                    onChanged: (value) => setDialogState(() => isPrivate = value),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('Batal'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final name = nameController.text.trim();
-                    if (name.isEmpty) {
-                      return;
-                    }
-
-                    onCreateBoard(name: name, isPrivate: isPrivate);
-                    Navigator.pop(dialogContext, true);
-                  },
-                  child: const Text('Simpan Papan'),
-                ),
-              ],
-            );
-          },
-        );
+        return _CreateBoardDialog(onCreateBoard: onCreateBoard);
       },
     );
 
     if (created == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Papan berhasil dibuat')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Papan berhasil dibuat')));
     }
   }
 
   Future<void> _showCreateCollageDialog(BuildContext context) async {
-    final titleController = TextEditingController();
-    final themeController = TextEditingController(text: 'Inspirasi');
-
     final created = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Buat Kolase'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Judul kolase'),
-              ),
-              TextField(
-                controller: themeController,
-                decoration: const InputDecoration(labelText: 'Tema kolase'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Batal'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final title = titleController.text.trim();
-                if (title.isEmpty) {
-                  return;
-                }
-
-                onCreateCollage(
-                  title: title,
-                  theme: themeController.text.trim().isEmpty
-                      ? 'Inspirasi'
-                      : themeController.text.trim(),
-                );
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text('Simpan Kolase'),
-            ),
-          ],
-        );
+        return _CreateCollageDialog(onCreateCollage: onCreateCollage);
       },
     );
 
     if (created == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kolase berhasil dibuat')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Kolase berhasil dibuat')));
     }
+  }
+}
+
+class _CreatePinDialog extends StatefulWidget {
+  const _CreatePinDialog({required this.boardNames, required this.onCreatePin});
+
+  final List<String> boardNames;
+  final void Function({
+    required String title,
+    required String author,
+    required String description,
+    required String imageUrl,
+    String? boardName,
+  })
+  onCreatePin;
+
+  @override
+  State<_CreatePinDialog> createState() => _CreatePinDialogState();
+}
+
+class _CreatePinDialogState extends State<_CreatePinDialog> {
+  final _titleController = TextEditingController();
+  final _authorController = TextEditingController(text: 'Anda');
+  final _descriptionController = TextEditingController();
+  final _imageUrlController = TextEditingController();
+  late String _selectedBoard;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedBoard = widget.boardNames.isNotEmpty
+        ? widget.boardNames.first
+        : '';
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _authorController.dispose();
+    _descriptionController.dispose();
+    _imageUrlController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Buat Pin'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(labelText: 'Judul Pin'),
+            ),
+            TextField(
+              controller: _authorController,
+              decoration: const InputDecoration(labelText: 'Nama Pembuat'),
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(labelText: 'Deskripsi'),
+              maxLines: 2,
+            ),
+            TextField(
+              controller: _imageUrlController,
+              decoration: const InputDecoration(
+                labelText: 'URL Gambar (opsional)',
+                hintText: 'https://...',
+              ),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: _selectedBoard,
+              items: [
+                const DropdownMenuItem<String>(
+                  value: '',
+                  child: Text('Tanpa papan'),
+                ),
+                ...widget.boardNames.map(
+                  (name) =>
+                      DropdownMenuItem<String>(value: name, child: Text(name)),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedBoard = value ?? '';
+                });
+              },
+              decoration: const InputDecoration(labelText: 'Simpan ke papan'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final title = _titleController.text.trim();
+            if (title.isEmpty) {
+              return;
+            }
+
+            final generatedImage =
+                'https://picsum.photos/seed/pin_${DateTime.now().millisecondsSinceEpoch}/500/700';
+
+            widget.onCreatePin(
+              title: title,
+              author: _authorController.text.trim().isEmpty
+                  ? 'Anda'
+                  : _authorController.text.trim(),
+              description: _descriptionController.text.trim(),
+              imageUrl: _imageUrlController.text.trim().isEmpty
+                  ? generatedImage
+                  : _imageUrlController.text.trim(),
+              boardName: _selectedBoard.isEmpty ? null : _selectedBoard,
+            );
+            Navigator.pop(context, true);
+          },
+          child: const Text('Simpan Pin'),
+        ),
+      ],
+    );
+  }
+}
+
+class _CreateCollageDialog extends StatefulWidget {
+  const _CreateCollageDialog({required this.onCreateCollage});
+
+  final void Function({required String title, required String theme})
+  onCreateCollage;
+
+  @override
+  State<_CreateCollageDialog> createState() => _CreateCollageDialogState();
+}
+
+class _CreateCollageDialogState extends State<_CreateCollageDialog> {
+  final _titleController = TextEditingController();
+  final _themeController = TextEditingController(text: 'Inspirasi');
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _themeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Buat Kolase'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(labelText: 'Judul kolase'),
+          ),
+          TextField(
+            controller: _themeController,
+            decoration: const InputDecoration(labelText: 'Tema kolase'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final title = _titleController.text.trim();
+            if (title.isEmpty) {
+              return;
+            }
+
+            widget.onCreateCollage(
+              title: title,
+              theme: _themeController.text.trim().isEmpty
+                  ? 'Inspirasi'
+                  : _themeController.text.trim(),
+            );
+            Navigator.pop(context, true);
+          },
+          child: const Text('Simpan Kolase'),
+        ),
+      ],
+    );
+  }
+}
+
+class _CreateBoardDialog extends StatefulWidget {
+  const _CreateBoardDialog({required this.onCreateBoard});
+
+  final void Function({required String name, required bool isPrivate})
+  onCreateBoard;
+
+  @override
+  State<_CreateBoardDialog> createState() => _CreateBoardDialogState();
+}
+
+class _CreateBoardDialogState extends State<_CreateBoardDialog> {
+  final _nameController = TextEditingController();
+  var _isPrivate = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Buat Papan'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(labelText: 'Nama papan'),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            value: _isPrivate,
+            title: const Text('Papan privat'),
+            onChanged: (value) => setState(() => _isPrivate = value),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final name = _nameController.text.trim();
+            if (name.isEmpty) {
+              return;
+            }
+
+            widget.onCreateBoard(name: name, isPrivate: _isPrivate);
+            Navigator.pop(context, true);
+          },
+          child: const Text('Simpan Papan'),
+        ),
+      ],
+    );
   }
 }
