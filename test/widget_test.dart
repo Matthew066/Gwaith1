@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gwaithh/main.dart';
+import 'package:gwaithh/screens/create_page.dart';
 
 void main() {
   testWidgets('Create page shows actions', (WidgetTester tester) async {
@@ -17,21 +17,17 @@ void main() {
         home: Scaffold(
           body: CreatePage(
             boardNames: const [],
-            onCreatePin: ({
-              required String title,
-              required String author,
-              required String description,
-              required String imageUrl,
-              String? boardName,
-            }) {},
-            onCreateBoard: ({
-              required String name,
-              required bool isPrivate,
-            }) {},
-            onCreateCollage: ({
-              required String title,
-              required String theme,
-            }) {},
+            onCreatePin:
+                ({
+                  required String title,
+                  required String author,
+                  required String description,
+                  required String imageUrl,
+                  String? boardName,
+                }) {},
+            onCreateBoard: ({required String name, required bool isPrivate}) {},
+            onCreateCollage:
+                ({required String title, required String theme}) {},
           ),
         ),
       ),
