@@ -454,89 +454,95 @@ class _MainLayoutState extends State<MainLayout> {
     ];
 
     return Scaffold(
-      body: Row(
-        children: [
-          NavigationRail(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            labelType: NavigationRailLabelType.none,
-            leading: Column(
-              children: [
-                const SizedBox(height: 20),
-                Image.asset(
-                  _gwaithLogoAsset,
-                  width: 92,
-                  height: 44,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Text(
-                      'Gwaith',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-            trailing: Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: IconButton(
-                    icon: const Icon(Icons.settings_outlined),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SettingsPage()),
+      body: SafeArea(
+        child: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              labelType: NavigationRailLabelType.none,
+              leading: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Image.asset(
+                    _gwaithLogoAsset,
+                    width: 92,
+                    height: 44,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Text(
+                        'Gwaith',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       );
                     },
                   ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+              trailing: Expanded(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: IconButton(
+                      icon: const Icon(Icons.settings_outlined),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SettingsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home_filled),
+                  label: Text('Home'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.favorite_border),
+                  selectedIcon: Icon(Icons.favorite),
+                  label: Text('Categories'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  selectedIcon: Icon(Icons.dashboard),
+                  label: Text('Boards'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.add_box_outlined),
+                  selectedIcon: Icon(Icons.add_box),
+                  label: Text('Create'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.notifications_outlined),
+                  selectedIcon: Icon(Icons.notifications),
+                  label: Text('Notifications'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.chat_bubble_outline),
+                  selectedIcon: Icon(Icons.chat_bubble),
+                  label: Text('Messages'),
+                ),
+              ],
             ),
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.home_filled),
-                selectedIcon: Icon(Icons.home),
-                label: Text('Home'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.favorite_border),
-                selectedIcon: Icon(Icons.favorite),
-                label: Text('Categories'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard),
-                label: Text('Boards'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.add_box_outlined),
-                selectedIcon: Icon(Icons.add_box),
-                label: Text('Create'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.notifications_outlined),
-                selectedIcon: Icon(Icons.notifications),
-                label: Text('Notifications'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.chat_bubble_outline),
-                selectedIcon: Icon(Icons.chat_bubble),
-                label: Text('Messages'),
-              ),
-            ],
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: pages[_selectedIndex]),
-        ],
+            const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: IndexedStack(index: _selectedIndex, children: pages),
+            ),
+          ],
+        ),
       ),
     );
   }
