@@ -19,6 +19,7 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
+  static const String _gwaithLogoAsset = 'assets/images/logogwaith.png';
   int _selectedIndex = 0;
   String _profileName = 'M';
   Uint8List? _profileImageBytes;
@@ -321,9 +322,17 @@ class _MainLayoutState extends State<MainLayout> {
             leading: Column(
               children: [
                 const SizedBox(height: 20),
-                const Text(
-                  'Gwaith',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Image.asset(
+                  _gwaithLogoAsset,
+                  width: 92,
+                  height: 44,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Text(
+                      'Gwaith',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
               ],
