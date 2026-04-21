@@ -34,6 +34,15 @@ class _MainLayoutState extends State<MainLayout> {
     'Art',
   ];
 
+  final _authors = [
+    'Oda',
+    'Masashi Kishimoto',
+    'Elon Musk',
+    'Bill gates',
+    'Deddy Corbuzier',
+    'YB',
+  ];
+
   Set<String> _selectedCategories = {};
   late List<Map<String, dynamic>> _pins;
   late List<Map<String, dynamic>> _boards;
@@ -55,14 +64,17 @@ class _MainLayoutState extends State<MainLayout> {
 
     _pins = List.generate(20, (index) {
       final category = _allCategories[index % _allCategories.length];
+      final author = _authors[index % _authors.length];
       final boardName = _boards[index % _boards.length]['name'] as String;
       return {
         'id': index,
-        'url': 'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
+        'url':
+            'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
         'height': (index % 4 + 3) * 100.0,
-        'title': 'Gambar ${index + 1}',
-        'author': 'Author ${index % 6 + 1}',
-        'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
+        'title': '$category #${index + 1}',
+        'author': author,
+        'description':
+            'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
         'category': category,
         'boardName': boardName,
       };
@@ -109,7 +121,9 @@ class _MainLayoutState extends State<MainLayout> {
         return;
       }
 
-      final boardIndex = _boards.indexWhere((board) => board['name'] == boardName);
+      final boardIndex = _boards.indexWhere(
+        (board) => board['name'] == boardName,
+      );
       if (boardIndex == -1) {
         return;
       }
@@ -120,10 +134,7 @@ class _MainLayoutState extends State<MainLayout> {
     });
   }
 
-  void _addBoard({
-    required String name,
-    required bool isPrivate,
-  }) {
+  void _addBoard({required String name, required bool isPrivate}) {
     setState(() {
       _boards.insert(0, {
         'name': name,
@@ -134,10 +145,7 @@ class _MainLayoutState extends State<MainLayout> {
     });
   }
 
-  void _addCollage({
-    required String title,
-    required String theme,
-  }) {
+  void _addCollage({required String title, required String theme}) {
     setState(() {
       _pins.insert(0, {
         'id': _idCounter++,
@@ -163,7 +171,9 @@ class _MainLayoutState extends State<MainLayout> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Pilih gambar dari file explorer saat ini tersedia di Flutter Web'),
+            content: Text(
+              'Pilih gambar dari file explorer saat ini tersedia di Flutter Web',
+            ),
           ),
         );
       }
@@ -197,7 +207,8 @@ class _MainLayoutState extends State<MainLayout> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     GestureDetector(
-                      onTap: () => _pickProfileImage(() => setDialogState(() {})),
+                      onTap: () =>
+                          _pickProfileImage(() => setDialogState(() {})),
                       child: CircleAvatar(
                         radius: 40,
                         backgroundColor: Colors.blueAccent,
@@ -207,20 +218,26 @@ class _MainLayoutState extends State<MainLayout> {
                         child: _profileImageBytes == null
                             ? Text(
                                 _profileInitial,
-                                style: const TextStyle(color: Colors.white, fontSize: 24),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                ),
                               )
                             : null,
                       ),
                     ),
                     const SizedBox(height: 8),
                     TextButton.icon(
-                      onPressed: () => _pickProfileImage(() => setDialogState(() {})),
+                      onPressed: () =>
+                          _pickProfileImage(() => setDialogState(() {})),
                       icon: const Icon(Icons.photo_library_outlined),
                       label: const Text('Pilih gambar dari file explorer'),
                     ),
                     TextField(
                       controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Nama profil'),
+                      decoration: const InputDecoration(
+                        labelText: 'Nama profil',
+                      ),
                     ),
                   ],
                 ),
@@ -258,7 +275,8 @@ class _MainLayoutState extends State<MainLayout> {
       final pinId = pin['id'] as int?;
       final category = pin['category'] as String?;
       final matchesLike = pinId != null && _likedPinIds.contains(pinId);
-      final matchesCategory = category != null && _selectedCategories.contains(category);
+      final matchesCategory =
+          category != null && _selectedCategories.contains(category);
       return matchesLike || matchesCategory;
     }).toList();
 
@@ -294,10 +312,7 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
       ),
-      BoardsPage(
-        boards: _boards,
-        onAddBoard: _addBoard,
-      ),
+      BoardsPage(boards: _boards, onAddBoard: _addBoard),
       CreatePage(
         boardNames: _boards.map((board) => board['name'] as String).toList(),
         onCreatePin: _addPin,
@@ -330,7 +345,10 @@ class _MainLayoutState extends State<MainLayout> {
                   errorBuilder: (context, error, stackTrace) {
                     return const Text(
                       'Gwaith',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     );
                   },
                 ),
