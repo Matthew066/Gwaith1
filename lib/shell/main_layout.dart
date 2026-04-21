@@ -146,15 +146,6 @@ class _MainLayoutState extends State<MainLayout> {
     },
   ];
 
-  final _authors = [
-    'Oda',
-    'Masashi Kishimoto',
-    'Elon Musk',
-    'Bill gates',
-    'Deddy Corbuzier',
-    'YB',
-  ];
-
   Set<String> _selectedCategories = {};
   late List<Map<String, dynamic>> _pins;
   late List<Map<String, dynamic>> _boards;
@@ -181,16 +172,15 @@ class _MainLayoutState extends State<MainLayout> {
     _pins = List.generate(20, (index) {
       final detail = _initialPinDetails[index];
       final category = _allCategories[index % _allCategories.length];
-      final author = _authors[index % _authors.length];
       final boardName = _boards[index % _boards.length]['name'] as String;
       return {
         'id': index,
         'url':
             'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
         'height': (index % 4 + 3) * 100.0,
-        'title': 'Gambar ${index + 1}',
-        'author': 'Author ${index % 6 + 1}',
-        'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
+        'title': detail['title'] ?? 'Tanpa Judul',
+        'author': detail['author'] ?? 'Tanpa Penulis',
+        'description': detail['description'] ?? '',
         'category': category,
         'boardName': boardName,
       };
@@ -276,7 +266,9 @@ class _MainLayoutState extends State<MainLayout> {
 
   void _sendDirectMessage(String friendName, Map<String, String> message) {
     setState(() {
-      _directMessages.putIfAbsent(friendName, () => <Map<String, String>>[]).add(message);
+      _directMessages
+          .putIfAbsent(friendName, () => <Map<String, String>>[])
+          .add(message);
     });
   }
 
