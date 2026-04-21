@@ -24,6 +24,15 @@ class _MainLayoutState extends State<MainLayout> {
   String _profileName = 'M';
   Uint8List? _profileImageBytes;
   final Set<int> _likedPinIds = <int>{};
+  final List<String> _friendNames = [
+    'Calvin',
+    'Ello',
+    'Theo',
+    'Wellsi',
+    'Bagas',
+    'Putra',
+  ];
+  late final Map<String, List<Map<String, String>>> _directMessages;
 
   final List<String> _allCategories = [
     'Galaxy',
@@ -155,6 +164,10 @@ class _MainLayoutState extends State<MainLayout> {
   void initState() {
     super.initState();
 
+    _directMessages = {
+      for (final friend in _friendNames) friend: <Map<String, String>>[],
+    };
+
     _boards = List.generate(
       3,
       (index) => {
@@ -258,6 +271,22 @@ class _MainLayoutState extends State<MainLayout> {
         'author': 'Anda',
         'description': 'Kolase bertema $theme',
       });
+    });
+  }
+
+  void _sendDirectMessage(String friendName, Map<String, String> message) {
+    setState(() {
+      _directMessages.putIfAbsent(friendName, () => <Map<String, String>>[]).add(message);
+    });
+  }
+
+  void _sendPinToDm(String friendName, Map<String, dynamic> pin) {
+    _sendDirectMessage(friendName, {
+      'from': 'me',
+      'type': 'pin',
+      'title': pin['title'] as String? ?? 'Pin Gwaith',
+      'imageUrl': pin['url'] as String? ?? '',
+      'text': 'Aku kirim pin ini ke kamu',
     });
   }
 
@@ -392,6 +421,8 @@ class _MainLayoutState extends State<MainLayout> {
         onProfileTap: _showEditProfileDialog,
         selectedCategories: _selectedCategories,
         likedPinIds: _likedPinIds,
+        friendNames: _friendNames,
+        onSendPinToDm: _sendPinToDm,
         onToggleLike: (pinId) {
           setState(() {
             if (_likedPinIds.contains(pinId)) {
@@ -423,7 +454,11 @@ class _MainLayoutState extends State<MainLayout> {
         onCreateCollage: _addCollage,
       ),
       const NotificationsPage(),
-      const MessagesPage(),
+      MessagesPage(
+        friends: _friendNames,
+        directMessages: _directMessages,
+        onSendMessage: _sendDirectMessage,
+      ),
     ];
 
     return Scaffold(

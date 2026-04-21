@@ -4,9 +4,13 @@ class ChatPage extends StatefulWidget {
   const ChatPage({
     super.key,
     required this.name,
+    required this.messages,
+    required this.onSendMessage,
   });
 
   final String name;
+  final List<Map<String, String>> messages;
+  final ValueChanged<Map<String, String>> onSendMessage;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -14,7 +18,6 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, String>> _messages = [];
 
   void _send() {
     final text = _controller.text.trim();
@@ -23,7 +26,7 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     setState(() {
-      _messages.add({'from': 'me', 'text': text});
+      widget.onSendMessage({'from': 'me', 'type': 'text', 'text': text});
     });
     _controller.clear();
   }
@@ -43,9 +46,9 @@ class _ChatPageState extends State<ChatPage> {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: _messages.length,
+              itemCount: widget.messages.length,
               itemBuilder: (context, index) {
-                final message = _messages[index];
+                final message = widget.messages[index];
                 final isMe = message['from'] == 'me';
                 return Align(
                   alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -56,12 +59,7 @@ class _ChatPageState extends State<ChatPage> {
                       color: isMe ? Colors.blueAccent : Colors.grey[300],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      message['text'] ?? '',
-                      style: TextStyle(
-                        color: isMe ? Colors.white : Colors.black87,
-                      ),
-                    ),
+                    child: _ChatBubbleContent(message: message, isMe: isMe),
                   ),
                 );
               },
@@ -88,6 +86,60 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ChatBubbleContent extends StatelessWidget {
+  const _ChatBubbleContent({
+    required this.message,
+    required this.isMe,
+  });
+
+  final Map<String, String> message;
+  final bool isMe;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = isMe ? Colors.white : Colors.black87;
+
+    if (message['type'] == 'pin') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              message['imageUrl'] ?? '',
+              width: 180,
+              height: 140,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message['title'] ?? 'Pin Gwaith',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if ((message['text'] ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                message['text']!,
+                style: TextStyle(color: textColor),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Text(
+      message['text'] ?? '',
+      style: TextStyle(color: textColor),
     );
   }
 }
