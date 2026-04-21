@@ -5,15 +5,26 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final users = [
+      'Calvin',
+      'Ello',
+      'Theo',
+      'Wellsi',
+      'Bagas',
+      'Putra',
+    ];
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: 10,
       itemBuilder: (context, index) {
+        final user = users[index % users.length];
+
         return ListTile(
-          leading: const CircleAvatar(
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=user'),
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=$user'),
           ),
-          title: Text('User $index menyukai Pin Anda'),
+          title: Text('$user menyukai Pin Anda'),
           subtitle: const Text('2 jam yang lalu'),
           trailing: Container(
             width: 40,
