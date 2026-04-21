@@ -7,7 +7,15 @@ class MessagesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final friends = List.generate(6, (index) => 'Teman ${index + 1}');
+    final friends = [
+      'Calvin',
+      'Ello',
+      'Theo',
+      'Wellsi',
+      'Bagas',
+      'Putra',
+    ];
+
     return Column(
       children: [
         const Padding(
@@ -24,7 +32,7 @@ class MessagesPage extends StatelessWidget {
               return ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person)),
                 title: Text(friends[index]),
-                subtitle: const Text('Terakhir: Halo!'),
+                subtitle: Text('Terakhir: ${friends[index]}'),
                 trailing: const Text('14:30'),
                 onTap: () {
                   Navigator.of(context).push(
