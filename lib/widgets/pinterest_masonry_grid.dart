@@ -8,11 +8,15 @@ class PinterestMasonryGrid extends StatelessWidget {
     required this.items,
     this.likedPinIds = const <int>{},
     this.onToggleLike,
+    this.friendNames = const <String>[],
+    this.onSendPinToDm,
   });
 
   final List<Map<String, dynamic>> items;
   final Set<int> likedPinIds;
   final ValueChanged<int>? onToggleLike;
+  final List<String> friendNames;
+  final void Function(String friendName, Map<String, dynamic> pin)? onSendPinToDm;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +60,8 @@ class PinterestMasonryGrid extends StatelessWidget {
             builder: (_) => ImageDetailPage(
               item: item,
               isLiked: isLiked,
+              friendNames: friendNames,
+              onSendPinToDm: onSendPinToDm,
               onToggleLike: pinId != null && onToggleLike != null
                   ? () => onToggleLike!(pinId)
                   : null,

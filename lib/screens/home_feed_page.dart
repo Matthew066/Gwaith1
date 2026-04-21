@@ -16,6 +16,8 @@ class HomeFeedPage extends StatefulWidget {
     required this.selectedCategories,
     required this.likedPinIds,
     required this.onToggleLike,
+    required this.friendNames,
+    required this.onSendPinToDm,
   });
 
   final List<Map<String, dynamic>> items;
@@ -26,6 +28,8 @@ class HomeFeedPage extends StatefulWidget {
   final Set<String> selectedCategories;
   final Set<int> likedPinIds;
   final ValueChanged<int> onToggleLike;
+  final List<String> friendNames;
+  final void Function(String friendName, Map<String, dynamic> pin) onSendPinToDm;
 
   @override
   State<HomeFeedPage> createState() => _HomeFeedPageState();
@@ -121,6 +125,8 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
                   items: _filteredItems,
                   likedPinIds: widget.likedPinIds,
                   onToggleLike: widget.onToggleLike,
+                  friendNames: widget.friendNames,
+                  onSendPinToDm: widget.onSendPinToDm,
                 ),
         ),
       ],

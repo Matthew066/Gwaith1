@@ -6,11 +6,15 @@ class ImageDetailPage extends StatefulWidget {
     super.key,
     required this.item,
     this.isLiked = false,
+    this.friendNames = const <String>[],
+    this.onSendPinToDm,
     this.onToggleLike,
   });
 
   final Map<String, dynamic> item;
   final bool isLiked;
+  final List<String> friendNames;
+  final void Function(String friendName, Map<String, dynamic> pin)? onSendPinToDm;
   final VoidCallback? onToggleLike;
 
   @override
@@ -38,6 +42,46 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
   }
 
   Future<void> _sharePin() async {
+    final option = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Bagikan gambar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              if (widget.friendNames.isNotEmpty && widget.onSendPinToDm != null)
+                ListTile(
+                  leading: const Icon(Icons.send_outlined),
+                  title: const Text('Kirim ke DM'),
+                  onTap: () => Navigator.pop(sheetContext, 'dm'),
+                ),
+              ListTile(
+                leading: const Icon(Icons.ios_share),
+                title: const Text('Other'),
+                subtitle: const Text('Salin link untuk dibagikan'),
+                onTap: () => Navigator.pop(sheetContext, 'other'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (option == null) {
+      return;
+    }
+
+    if (option == 'dm') {
+      await _sendToDm();
+      return;
+    }
+
     final title = widget.item['title'] as String? ?? 'Pin Gwaith';
     final url = widget.item['url'] as String? ?? '';
     await Clipboard.setData(ClipboardData(text: '$title\n$url'));
@@ -48,6 +92,38 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Link gambar disalin untuk dibagikan')),
+    );
+  }
+
+  Future<void> _sendToDm() async {
+    final friend = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return SimpleDialog(
+          title: const Text('Kirim ke DM'),
+          children: [
+            for (final name in widget.friendNames)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, name),
+                child: Text(name),
+              ),
+          ],
+        );
+      },
+    );
+
+    if (friend == null) {
+      return;
+    }
+
+    widget.onSendPinToDm?.call(friend, widget.item);
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Gambar dikirim ke DM $friend')),
     );
   }
 
