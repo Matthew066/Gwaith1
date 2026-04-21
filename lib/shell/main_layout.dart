@@ -34,6 +34,109 @@ class _MainLayoutState extends State<MainLayout> {
     'Art',
   ];
 
+  final List<Map<String, String>> _initialPinDetails = [
+    {
+      'title': 'Serigala',
+      'author': 'Calvin',
+      'description': 'Serigala berjalan di hutan yang tenang.',
+    },
+    {
+      'title': 'Theo menikmati senja',
+      'author': 'Theo',
+      'description': 'Theo duduk santai menikmati cahaya senja di tepi kota.',
+    },
+    {
+      'title': 'Pohon palem di pantai',
+      'author': 'Ello',
+      'description': 'Pohon palem tinggi memberi suasana liburan yang hangat.',
+    },
+    {
+      'title': 'Cahaya pagi di padang',
+      'author': 'Wellsi',
+      'description': 'Sinar matahari pagi menyinari padang rumput luas.',
+    },
+    {
+      'title': 'Langit galaxy',
+      'author': 'Bagas',
+      'description': 'Inspirasi warna galaxy untuk suasana yang dramatis.',
+    },
+    {
+      'title': 'Putra di jalan kota',
+      'author': 'Putra',
+      'description': 'Momen jalan kota yang terlihat sederhana dan estetik.',
+    },
+    {
+      'title': 'Rumah minimalis',
+      'author': 'Calvin',
+      'description': 'Ide rumah minimalis dengan bentuk yang bersih.',
+    },
+    {
+      'title': 'Sketsa ruang kerja',
+      'author': 'Ello',
+      'description': 'Referensi ruang kerja rapi untuk fokus berkarya.',
+    },
+    {
+      'title': 'Taman sore hari',
+      'author': 'Theo',
+      'description': 'Taman hijau dengan suasana sore yang kalem.',
+    },
+    {
+      'title': 'Kopi dan catatan',
+      'author': 'Wellsi',
+      'description': 'Meja kecil dengan kopi dan catatan ide harian.',
+    },
+    {
+      'title': 'Pegunungan berkabut',
+      'author': 'Bagas',
+      'description': 'Pemandangan gunung berkabut yang terasa sejuk.',
+    },
+    {
+      'title': 'Lampu jalan malam',
+      'author': 'Putra',
+      'description': 'Lampu jalan memberi nuansa malam yang sinematik.',
+    },
+    {
+      'title': 'Ilustrasi karakter',
+      'author': 'Calvin',
+      'description': 'Inspirasi karakter dengan gaya ilustrasi modern.',
+    },
+    {
+      'title': 'Pantai biru',
+      'author': 'Ello',
+      'description': 'Air laut biru dengan suasana pantai yang bersih.',
+    },
+    {
+      'title': 'Gedung kaca',
+      'author': 'Theo',
+      'description': 'Arsitektur gedung kaca dengan refleksi langit.',
+    },
+    {
+      'title': 'Bunga merah',
+      'author': 'Wellsi',
+      'description': 'Detail bunga merah yang cocok untuk moodboard warna.',
+    },
+    {
+      'title': 'Motor klasik',
+      'author': 'Bagas',
+      'description': 'Motor klasik dengan nuansa retro yang kuat.',
+    },
+    {
+      'title': 'Jembatan kota',
+      'author': 'Putra',
+      'description': 'Jembatan kota sebagai inspirasi foto urban.',
+    },
+    {
+      'title': 'Kucing di jendela',
+      'author': 'Calvin',
+      'description': 'Kucing duduk tenang di dekat jendela rumah.',
+    },
+    {
+      'title': 'Senja di danau',
+      'author': 'Ello',
+      'description': 'Pantulan senja di danau yang terlihat damai.',
+    },
+  ];
+
   final _authors = [
     'Oda',
     'Masashi Kishimoto',
@@ -63,6 +166,7 @@ class _MainLayoutState extends State<MainLayout> {
     );
 
     _pins = List.generate(20, (index) {
+      final detail = _initialPinDetails[index];
       final category = _allCategories[index % _allCategories.length];
       final author = _authors[index % _authors.length];
       final boardName = _boards[index % _boards.length]['name'] as String;
@@ -71,10 +175,9 @@ class _MainLayoutState extends State<MainLayout> {
         'url':
             'https://picsum.photos/seed/${index + 10}/400/${(index % 4 + 3) * 100}',
         'height': (index % 4 + 3) * 100.0,
-        'title': '$category #${index + 1}',
-        'author': author,
-        'description':
-            'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
+        'title': 'Gambar ${index + 1}',
+        'author': 'Author ${index % 6 + 1}',
+        'description': 'Deskripsi untuk gambar ${index + 1}. Ini contoh teks deskripsi yang lebih panjang.',
         'category': category,
         'boardName': boardName,
       };

@@ -9,13 +9,13 @@ class MessagesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final friends = [
       'Calvin',
-      'Matthew',
-      'Gabriello',
-      'Tristanto',
-      'Toni',
-      'Glaudio',
+      'Ello',
+      'Theo',
+      'Wellsi',
+      'Bagas',
+      'Putra',
     ];
-    final messageTimes = ['10:00', '11:15', '12:30', '13:45', '15:00', '16:20'];
+
     return Column(
       children: [
         const Padding(
@@ -32,8 +32,8 @@ class MessagesPage extends StatelessWidget {
               return ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person)),
                 title: Text(friends[index]),
-                subtitle: const Text('Terakhir: Halo!'),
-                trailing: Text(messageTimes[index % messageTimes.length]),
+                subtitle: Text('Terakhir: ${friends[index]}'),
+                trailing: const Text('14:30'),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(

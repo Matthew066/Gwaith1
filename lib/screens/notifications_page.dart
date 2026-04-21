@@ -15,11 +15,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   final _friends = [
     'Calvin',
-    'Matthew',
-    'Gabriello',
-    'Tristanto',
-    'Toni',
-    'Glaudio',
+    'Ello',
+    'Theo',
+    'Wellsi',
+    'Bagas',
+    'Putra',
   ];
 
   final _actions = ['menyukai Pin Anda', 'menyukai papan Anda'];
@@ -70,11 +70,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
       itemCount: _notifications.length,
       itemBuilder: (context, index) {
         final notif = _notifications[index];
+
         return ListTile(
           leading: CircleAvatar(
             backgroundImage: NetworkImage(notif['avatarUrl']!),
           ),
-          title: Text('${notif['name']!} ${notif['action']!}'),
+          title: Text('${notif['name']} ${notif['action']}'),
           subtitle: Text(notif['time']!),
           trailing: Container(
             width: 40,
