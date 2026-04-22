@@ -7,16 +7,21 @@ class ImageDetailPage extends StatefulWidget {
     required this.item,
     this.isLiked = false,
     this.friendNames = const <String>[],
+    this.boardNames = const <String>[],
     this.onSendPinToDm,
     this.onToggleLike,
+    this.onSavePinToBoard,
   });
 
   final Map<String, dynamic> item;
   final bool isLiked;
   final List<String> friendNames;
+  final List<String> boardNames;
   final void Function(String friendName, Map<String, dynamic> pin)?
   onSendPinToDm;
   final VoidCallback? onToggleLike;
+  final String Function(Map<String, dynamic> pin, String boardName)?
+  onSavePinToBoard;
 
   @override
   State<ImageDetailPage> createState() => _ImageDetailPageState();
@@ -176,6 +181,62 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
     }
   }
 
+  Future<void> _savePinToBoard() async {
+    if (widget.onSavePinToBoard == null) {
+      return;
+    }
+
+    if (widget.boardNames.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Belum ada papan. Buat papan terlebih dahulu'),
+        ),
+      );
+      return;
+    }
+
+    final boardName = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ListTile(
+                title: Text(
+                  'Simpan ke papan',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final boardName in widget.boardNames)
+                      ListTile(
+                        leading: const Icon(Icons.dashboard_outlined),
+                        title: Text(boardName),
+                        onTap: () => Navigator.pop(sheetContext, boardName),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || boardName == null) {
+      return;
+    }
+
+    final message = widget.onSavePinToBoard!.call(widget.item, boardName);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -225,6 +286,15 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                         icon: const Icon(Icons.more_horiz),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _savePinToBoard,
+                      icon: const Icon(Icons.push_pin_outlined),
+                      label: const Text('Simpan ke papan'),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(

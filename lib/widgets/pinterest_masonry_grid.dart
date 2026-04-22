@@ -9,14 +9,20 @@ class PinterestMasonryGrid extends StatelessWidget {
     this.likedPinIds = const <int>{},
     this.onToggleLike,
     this.friendNames = const <String>[],
+    this.boardNames = const <String>[],
     this.onSendPinToDm,
+    this.onSavePinToBoard,
   });
 
   final List<Map<String, dynamic>> items;
   final Set<int> likedPinIds;
   final ValueChanged<int>? onToggleLike;
   final List<String> friendNames;
-  final void Function(String friendName, Map<String, dynamic> pin)? onSendPinToDm;
+  final List<String> boardNames;
+  final void Function(String friendName, Map<String, dynamic> pin)?
+  onSendPinToDm;
+  final String Function(Map<String, dynamic> pin, String boardName)?
+  onSavePinToBoard;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +34,9 @@ class PinterestMasonryGrid extends StatelessWidget {
           children: [
             Expanded(
               child: Column(
-                children: items.asMap().entries
+                children: items
+                    .asMap()
+                    .entries
                     .where((entry) => entry.key.isEven)
                     .map((entry) => _buildGridItem(context, entry.value))
                     .toList(),
@@ -37,7 +45,9 @@ class PinterestMasonryGrid extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Column(
-                children: items.asMap().entries
+                children: items
+                    .asMap()
+                    .entries
                     .where((entry) => entry.key.isOdd)
                     .map((entry) => _buildGridItem(context, entry.value))
                     .toList(),
@@ -61,10 +71,12 @@ class PinterestMasonryGrid extends StatelessWidget {
               item: item,
               isLiked: isLiked,
               friendNames: friendNames,
+              boardNames: boardNames,
               onSendPinToDm: onSendPinToDm,
               onToggleLike: pinId != null && onToggleLike != null
                   ? () => onToggleLike!(pinId)
                   : null,
+              onSavePinToBoard: onSavePinToBoard,
             ),
           ),
         );
@@ -102,7 +114,10 @@ class PinterestMasonryGrid extends StatelessWidget {
                 right: 8,
                 bottom: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(8),

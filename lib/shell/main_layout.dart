@@ -146,7 +146,7 @@ class _MainLayoutState extends State<MainLayout> {
     },
   ];
 
-  Set<String> _selectedCategories = {};
+  final Set<String> _selectedCategories = {};
   late List<Map<String, dynamic>> _pins;
   late List<Map<String, dynamic>> _boards;
   int _idCounter = 1000;
@@ -183,6 +183,7 @@ class _MainLayoutState extends State<MainLayout> {
         'description': detail['description'] ?? '',
         'category': category,
         'boardName': boardName,
+        'savedBoardNames': <String>{boardName},
       };
     });
 
@@ -219,6 +220,9 @@ class _MainLayoutState extends State<MainLayout> {
         'description': description,
         'category': category,
         'boardName': boardName,
+        'savedBoardNames': boardName == null || boardName.isEmpty
+            ? <String>{}
+            : <String>{boardName},
       };
 
       _pins.insert(0, pin);
@@ -249,6 +253,63 @@ class _MainLayoutState extends State<MainLayout> {
         'pins': <Map<String, dynamic>>[],
       });
     });
+  }
+
+  Set<String> _savedBoardNamesFor(Map<String, dynamic> pin) {
+    final rawSavedBoardNames = pin['savedBoardNames'];
+    if (rawSavedBoardNames is Set<String>) {
+      return rawSavedBoardNames;
+    }
+
+    if (rawSavedBoardNames is Iterable) {
+      return rawSavedBoardNames.whereType<String>().toSet();
+    }
+
+    final boardName = pin['boardName'] as String?;
+    if (boardName == null || boardName.isEmpty) {
+      return <String>{};
+    }
+
+    return <String>{boardName};
+  }
+
+  String _savePinToBoard(Map<String, dynamic> pin, String boardName) {
+    var isSaved = false;
+    var alreadySaved = false;
+
+    setState(() {
+      final boardIndex = _boards.indexWhere(
+        (board) => board['name'] == boardName,
+      );
+      if (boardIndex == -1) {
+        return;
+      }
+
+      final savedBoardNames = _savedBoardNamesFor(pin);
+      pin['savedBoardNames'] = savedBoardNames;
+
+      if (savedBoardNames.contains(boardName)) {
+        alreadySaved = true;
+        return;
+      }
+
+      savedBoardNames.add(boardName);
+
+      final board = _boards[boardIndex];
+      board['pinCount'] = (board['pinCount'] as int) + 1;
+      (board['pins'] as List).insert(0, pin);
+      isSaved = true;
+    });
+
+    if (isSaved) {
+      return 'Pin disimpan ke papan $boardName';
+    }
+
+    if (alreadySaved) {
+      return 'Pin sudah ada di papan $boardName';
+    }
+
+    return 'Papan tidak ditemukan';
   }
 
   void _addCollage({required String title, required String theme}) {
@@ -414,7 +475,9 @@ class _MainLayoutState extends State<MainLayout> {
         selectedCategories: _selectedCategories,
         likedPinIds: _likedPinIds,
         friendNames: _friendNames,
+        boardNames: _boards.map((board) => board['name'] as String).toList(),
         onSendPinToDm: _sendPinToDm,
+        onSavePinToBoard: _savePinToBoard,
         onToggleLike: (pinId) {
           setState(() {
             if (_likedPinIds.contains(pinId)) {
@@ -438,7 +501,12 @@ class _MainLayoutState extends State<MainLayout> {
           });
         },
       ),
-      BoardsPage(boards: _boards, onAddBoard: _addBoard),
+      BoardsPage(
+        boards: _boards,
+        boardNames: _boards.map((board) => board['name'] as String).toList(),
+        onAddBoard: _addBoard,
+        onSavePinToBoard: _savePinToBoard,
+      ),
       CreatePage(
         boardNames: _boards.map((board) => board['name'] as String).toList(),
         onCreatePin: _addPin,

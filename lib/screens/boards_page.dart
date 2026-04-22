@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 
 import 'board_detail_page.dart';
-                                       
+
 class BoardsPage extends StatelessWidget {
   const BoardsPage({
     super.key,
     required this.boards,
+    required this.boardNames,
     required this.onAddBoard,
+    required this.onSavePinToBoard,
   });
 
   final List<Map<String, dynamic>> boards;
-  final void Function({
-    required String name,
-    required bool isPrivate,
-  }) onAddBoard;
+  final List<String> boardNames;
+  final void Function({required String name, required bool isPrivate})
+  onAddBoard;
+  final String Function(Map<String, dynamic> pin, String boardName)
+  onSavePinToBoard;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +51,10 @@ class BoardsPage extends StatelessWidget {
                       child: Center(
                         child: Text(
                           'Buat',
-                          style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey[700],
+                          ),
                         ),
                       ),
                     ),
@@ -56,7 +62,8 @@ class BoardsPage extends StatelessWidget {
                 }
 
                 final board = boards[index - 1];
-                final pins = (board['pins'] as List).cast<Map<String, dynamic>>();
+                final pins = (board['pins'] as List)
+                    .cast<Map<String, dynamic>>();
                 return _buildBoardCard(board, pins, context);
               },
             ),
@@ -78,6 +85,8 @@ class BoardsPage extends StatelessWidget {
             builder: (_) => BoardDetailPage(
               name: board['name'] as String,
               pins: pins,
+              boardNames: boardNames,
+              onSavePinToBoard: onSavePinToBoard,
             ),
           ),
         );
@@ -122,7 +131,9 @@ class BoardsPage extends StatelessWidget {
               title: Text(board['name'] as String),
               subtitle: Text('${board['pinCount']} Pin'),
               trailing: Icon(
-                (board['isPrivate'] as bool) ? Icons.lock_outline : Icons.public,
+                (board['isPrivate'] as bool)
+                    ? Icons.lock_outline
+                    : Icons.public,
                 size: 16,
               ),
             ),
@@ -142,7 +153,8 @@ class BoardsPage extends StatelessWidget {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[300]),
+      errorBuilder: (context, error, stackTrace) =>
+          Container(color: Colors.grey[300]),
     );
   }
 
@@ -170,7 +182,8 @@ class BoardsPage extends StatelessWidget {
                       const Text('Privat'),
                       Switch(
                         value: isPrivate,
-                        onChanged: (value) => setDialogState(() => isPrivate = value),
+                        onChanged: (value) =>
+                            setDialogState(() => isPrivate = value),
                       ),
                     ],
                   ),
@@ -199,9 +212,9 @@ class BoardsPage extends StatelessWidget {
     );
 
     if (created == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Papan dibuat')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Papan dibuat')));
     }
   }
 }

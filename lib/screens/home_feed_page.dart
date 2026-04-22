@@ -17,7 +17,9 @@ class HomeFeedPage extends StatefulWidget {
     required this.likedPinIds,
     required this.onToggleLike,
     required this.friendNames,
+    required this.boardNames,
     required this.onSendPinToDm,
+    required this.onSavePinToBoard,
   });
 
   final List<Map<String, dynamic>> items;
@@ -29,7 +31,11 @@ class HomeFeedPage extends StatefulWidget {
   final Set<int> likedPinIds;
   final ValueChanged<int> onToggleLike;
   final List<String> friendNames;
-  final void Function(String friendName, Map<String, dynamic> pin) onSendPinToDm;
+  final List<String> boardNames;
+  final void Function(String friendName, Map<String, dynamic> pin)
+  onSendPinToDm;
+  final String Function(Map<String, dynamic> pin, String boardName)
+  onSavePinToBoard;
 
   @override
   State<HomeFeedPage> createState() => _HomeFeedPageState();
@@ -51,7 +57,8 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
     return results.where((item) {
       final title = (item['title'] as String).toLowerCase();
       final author = (item['author'] as String).toLowerCase();
-      return title.contains(normalizedQuery) || author.contains(normalizedQuery);
+      return title.contains(normalizedQuery) ||
+          author.contains(normalizedQuery);
     }).toList();
   }
 
@@ -99,10 +106,12 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
                   ),
                 ),
               ),
-            ],  
+            ],
           ),
         ),
-        if (_forYou && widget.likedPinIds.isEmpty && widget.selectedCategories.isEmpty)
+        if (_forYou &&
+            widget.likedPinIds.isEmpty &&
+            widget.selectedCategories.isEmpty)
           const Padding(
             padding: EdgeInsets.all(8),
             child: Text(
@@ -126,7 +135,9 @@ class _HomeFeedPageState extends State<HomeFeedPage> {
                   likedPinIds: widget.likedPinIds,
                   onToggleLike: widget.onToggleLike,
                   friendNames: widget.friendNames,
+                  boardNames: widget.boardNames,
                   onSendPinToDm: widget.onSendPinToDm,
+                  onSavePinToBoard: widget.onSavePinToBoard,
                 ),
         ),
       ],

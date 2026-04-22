@@ -58,7 +58,7 @@ class CreatePage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _createOption({
     required BuildContext context,
     required IconData icon,
@@ -202,7 +202,7 @@ class _CreatePinDialogState extends State<_CreatePinDialog> {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: _selectedBoard,
+              initialValue: _selectedBoard,
               items: [
                 const DropdownMenuItem<String>(
                   value: '',
