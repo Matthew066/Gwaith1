@@ -14,7 +14,8 @@ class ImageDetailPage extends StatefulWidget {
   final Map<String, dynamic> item;
   final bool isLiked;
   final List<String> friendNames;
-  final void Function(String friendName, Map<String, dynamic> pin)? onSendPinToDm;
+  final void Function(String friendName, Map<String, dynamic> pin)?
+  onSendPinToDm;
   final VoidCallback? onToggleLike;
 
   @override
@@ -122,9 +123,9 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Gambar dikirim ke DM $friend')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Gambar dikirim ke DM $friend')));
   }
 
   Future<void> _showCommentDialog() async {
@@ -150,13 +151,18 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                 child: const Text('Batal'),
               ),
               FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+                onPressed: () =>
+                    Navigator.pop(dialogContext, controller.text.trim()),
                 child: const Text('Kirim'),
               ),
             ],
           );
         },
       );
+
+      if (!mounted) {
+        return;
+      }
 
       if (comment == null || comment.isEmpty) {
         return;
@@ -173,14 +179,15 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.item['title'] as String? ?? 'Detail'),
-      ),
+      appBar: AppBar(title: Text(widget.item['title'] as String? ?? 'Detail')),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Image.network(widget.item['url'] as String? ?? '', fit: BoxFit.cover),
+            Image.network(
+              widget.item['url'] as String? ?? '',
+              fit: BoxFit.cover,
+            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -210,7 +217,9 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                       IconButton(
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Menu lainnya belum tersedia')),
+                            const SnackBar(
+                              content: Text('Menu lainnya belum tersedia'),
+                            ),
                           );
                         },
                         icon: const Icon(Icons.more_horiz),
@@ -220,7 +229,10 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                   const SizedBox(height: 12),
                   Text(
                     widget.item['title'] as String? ?? '',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -245,7 +257,10 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                     const SizedBox(height: 20),
                     const Text(
                       'Komentar',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ..._comments.map(
@@ -254,9 +269,11 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const CircleAvatar(
+                            CircleAvatar(
                               radius: 14,
-                              child: Icon(Icons.person, size: 16),
+                              backgroundImage: NetworkImage(
+                                'https://i.pravatar.cc/100?u=${comment.hashCode}',
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(child: Text(comment)),
@@ -300,10 +317,7 @@ class _ActionButton extends StatelessWidget {
           children: [
             Icon(icon, color: color),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
           ],
         ),
       ),
