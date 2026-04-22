@@ -134,51 +134,22 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
   }
 
   Future<void> _showCommentDialog() async {
-    final controller = TextEditingController();
+    final comment = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => const _CommentDialog(),
+    );
 
-    try {
-      final comment = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text('Tambah komentar'),
-            content: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Komentar',
-                hintText: 'Tulis komentar Anda',
-              ),
-              maxLines: 3,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Batal'),
-              ),
-              FilledButton(
-                onPressed: () =>
-                    Navigator.pop(dialogContext, controller.text.trim()),
-                child: const Text('Kirim'),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      if (comment == null || comment.isEmpty) {
-        return;
-      }
-
-      setState(() {
-        _comments.insert(0, comment);
-      });
-    } finally {
-      controller.dispose();
+    if (!mounted) {
+      return;
     }
+
+    if (comment == null || comment.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _comments.insert(0, comment);
+    });
   }
 
   Future<void> _savePinToBoard() async {
@@ -197,31 +168,37 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
 
     final boardName = await showModalBottomSheet<String>(
       context: context,
+      isScrollControlled: true,
       builder: (sheetContext) {
+        final maxHeight = MediaQuery.sizeOf(sheetContext).height * 0.6;
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const ListTile(
-                title: Text(
-                  'Simpan ke papan',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+          child: SizedBox(
+            height: maxHeight,
+            child: Column(
+              children: [
+                const ListTile(
+                  title: Text(
+                    'Simpan ke papan',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final boardName in widget.boardNames)
-                      ListTile(
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: widget.boardNames.length,
+                    itemBuilder: (context, index) {
+                      final itemBoardName = widget.boardNames[index];
+                      return ListTile(
                         leading: const Icon(Icons.dashboard_outlined),
-                        title: Text(boardName),
-                        onTap: () => Navigator.pop(sheetContext, boardName),
-                      ),
-                  ],
+                        title: Text(itemBoardName),
+                        onTap: () =>
+                            Navigator.of(sheetContext).pop(itemBoardName),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -358,6 +335,58 @@ class _ImageDetailPageState extends State<ImageDetailPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CommentDialog extends StatefulWidget {
+  const _CommentDialog();
+
+  @override
+  State<_CommentDialog> createState() => _CommentDialogState();
+}
+
+class _CommentDialogState extends State<_CommentDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    FocusScope.of(context).unfocus();
+    Navigator.of(context).pop(_controller.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Tambah komentar'),
+      content: TextField(
+        controller: _controller,
+        decoration: const InputDecoration(
+          labelText: 'Komentar',
+          hintText: 'Tulis komentar Anda',
+        ),
+        maxLines: 3,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Batal'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Kirim')),
+      ],
     );
   }
 }
